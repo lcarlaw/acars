@@ -1,0 +1,11 @@
+_DS_Store
+__pycache__/
+utils/__pycache__/
+netcdf/
+data/
+code_storage/
+.env
+token.pickle
+downloads.log
+crons.log
+.DS_Store
