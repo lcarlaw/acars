@@ -64,13 +64,6 @@ def to_bufkit(output_path, data, rap_data=None, label=None):
 
     snd_lines = ["%s\r\n" % (label)]
     snd_lines.extend(FILE_HEADER)
-
-    for t in range(n_times):
-        pres_store.append(data['pressure'].iloc[t][0])
-    sfc_p_std = np.std(pres_store)
-    sfc_p_mean = np.average(pres_store)
-    p_bound_min = sfc_p_mean - (4 * sfc_p_std)
-    p_bound_max = sfc_p_mean + (4 * sfc_p_std)
     # ----------------------------------------------------------------------------------
     # Data for outputting
     # ----------------------------------------------------------------------------------
@@ -110,11 +103,6 @@ def to_bufkit(output_path, data, rap_data=None, label=None):
         lev_knt = 0
         prof = defaultdict(list)
         for row in range(len(t_out)):
-            if levs[0] < p_bound_min:
-                timestamp("WARN")
-                print("Tossing %s and Flight # %s due to bad sfc pres." % (out_time,
-                                                                data.iloc[t]['flight']))
-                break
             if lev_knt >= max_levs: break
             thetae = thermo.theta_e(levs[row], t_out[row], td_out[row])
 
@@ -127,7 +115,7 @@ def to_bufkit(output_path, data, rap_data=None, label=None):
             prof['wspd'].append(wspd_out[row])
             prof['hght'].append(hght_out[row])
         p_sfc = levs[0]
-        #pres_store.append(p_sfc)
+        pres_store.append(p_sfc)
 
         # Use the RAP data to extend our profile up to a maximum of 67 pressure levels.
         # If not available, extend using some random data (see utils.bufkit_helper).
@@ -365,7 +353,10 @@ def main():
             # Quality-control checks
             # Interpolate RAP sounding to the ACARS profile (in logp space).
             # --------------------------------------------------------------------------
+            p_sfc = []
             for index, row in df.iterrows():
+                p_sfc.append(row['pressure'][0])
+                df.at[index, 'sfc_p'] = row['pressure'][0]
                 tmpc = interp_pres(row['pressure'], rap_data[row['dt']]['pressure'],
                                    rap_data[row['dt']]['temperature'])
                 dwpc = interp_pres(row['pressure'], rap_data[row['dt']]['pressure'],
@@ -378,16 +369,15 @@ def main():
                 dwpc_deltas = np.fabs(dwpc - row['dewpoint'])
                 df.at[index, 'dewpoint'] = np.where(dwpc_deltas > TD_QC, dwpc,
                                                     row['dewpoint'])
-                #idx_1 = np.where(tmpc_deltas > T_QC)
-                #idx_2 = np.where(dwpc_deltas > TD_QC)
-                #qc_t = len(idx_1[0]) / len(row['pressure'])*100
-                #qc_td = len(idx_2[0]) / len(row['pressure'])*100
 
-                #if qc_t > 0. or qc_td > 0.:
-                #    print(row['dt'])
-                #    print("---->Replacing %s pct of temperature values" % (qc_t))
-                #    print("---->Replacing %s pct of dewpoint values" % (qc_td))
-                # Currently no QC checks for winds. May add this in later.
+            p_sfc_median = np.median(p_sfc)
+            p_sfc_sigma = np.std(p_sfc)
+            p_sfc_lim = p_sfc_median - (3 * p_sfc_sigma)
+            timestamp("*WARN*")
+            print("Dropping the following due to bad surface pressures:")
+            print(df[df['sfc_p'] <= p_sfc_lim][['dt', 'sfc_p', 'flight']])
+            df = df[df['sfc_p'] > p_sfc_lim]
+
             # --------------------------------------------------------------------------
             # Output to file.
             #
