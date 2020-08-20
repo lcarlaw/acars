@@ -12,28 +12,32 @@ The setup here proceeds using Anaconda, as well as assuming a completely vanilla
 conda create --name acars python=3.7
 conda activate acars
 
-conda install netcdf4 numpy pandas python-dotenv requests
-conda install pydrive (optional)
+conda install netcdf4 numpy pandas requests
+pip install python-dotenv
+
+[OPTIONAL for crons and uploading to Google Drive]:
+conda install pydrive
 ```
 #### Google Drive API
-This is optional, but will allow for automated uploads to Google Drive. Follow the [initialization steps outlined here](https://mihevc.org/2016/02/04/crontabed-pydrive-uploader.html). This is currently going to the `lcarlaw.data.store@gmail.com` account. 
+This is optional, but will allow for automated uploads to Google Drive. Follow the [initialization steps outlined here](https://mihevc.org/2016/02/04/crontabed-pydrive-uploader.html). This is currently going to the `lcarlaw.data.store@gmail.com` account.
 
 ## Usage
 Two scripts are employed for general use: one for downloading and the MADIS netCDF files, and another for constructing the BUFKIT-readable soundings.
 
+You'll need to edit a few variables in the `utils/configs.py` script. These are indicated clearly within the comments, but include things such as setting the `${DATA}`, `${SOUNDINGS}`, and `${NETCDF}` paths.
+
 ### Data Download
 All arguments are optional:
+
 ```
-python download_acars.py [-d DATA_PATH] [-o OUTPUT_PATH] [-v]
+python download_acars.py [-a ARCHIVE_MODE] [-v]
 ```
-`DATA_PATH`:  Defaults to `./netcdf` and must contain a sub-directory called `markers`. This is where the MADIS netCDF4 files will be stored and accessed.
-`OUTPUT_PATH`: Defaults to `./data`. This is where individual decoded profile data files will be stored and accessed.
+`ARCHIVE_MODE`:  Specifying a date time of the form `YYYY-MM-DD/HH` which cause the script to download archived ACARS data (the archive goes back to about 2001). Archived output will be dumped into `${DATA}/data_store_archive`
 `-v`: Optional switch to download only VAPOR profiles.
 
 ### BUFKIT/SHARPpy Output
 
 ```
-python acars.py [-d DATA_PATH] [-b SOUNDING_PATH]
+python acars.py [-a]
 ```
-`DATA_PATH`: Defaults to `./data`
-`SOUNDING_PATH`: Defaults to `./soundings`. BUFKIT profiles will be output here.
+`-a`: Set this flag if this is an archived run. Script will then search `${DATA}/data_store_archive` instead.

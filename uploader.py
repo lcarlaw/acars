@@ -3,14 +3,24 @@ from pydrive.drive import GoogleDrive
 import os
 import argparse
 
+FOLDER = '1H42syfetJyWwOEkmnQCRSj6qjAPgZxrr'
+
 def upload_to_google_drive(file, short_name):
-    file_list = drive.ListFile({'q':"'1H42syfetJyWwOEkmnQCRSj6qjAPgZxrr' in parents and trashed=False"}).GetList()
+    file_list = drive.ListFile({'q':"'%s' in parents and trashed=False" %
+                               (FOLDER)}).GetList()
     for file1 in file_list:
         if file1['title'] == short_name:
             id = file1['id']
-    f = drive.CreateFile({'title': short_name, 'id':id})
-    f.SetContentFile(file)
-    f.Upload()
+    try:
+        print("Updating an EXISTING FILE...")
+        f = drive.CreateFile({'title': short_name, 'id':id})
+        f.SetContentFile(file)
+        f.Upload()
+    except:
+        print("This is a NEW FILE...")
+        f = drive.CreateFile({'title': short_name, 'parents': [{'id': FOLDER}]})
+        f.SetContentFile(file)
+        f.Upload()
 
 # Parse the passed arguments
 parser = argparse.ArgumentParser()
@@ -25,26 +35,17 @@ credential_path = os.path.join(credential_dir, "pydrive-credentials.json")
 
 # Start authentication
 gauth = GoogleAuth()
-# Try to load saved client credentials
 gauth.LoadCredentialsFile(credential_path)
 if gauth.credentials is None:
-    # Authenticate if they're not there
     gauth.CommandLineAuth()
 elif gauth.access_token_expired:
-    # Refresh them if expired
     gauth.Refresh()
 else:
-    # Initialize the saved creds
     gauth.Authorize()
-# Save the current credentials to a file
 gauth.SaveCredentialsFile(credential_path)
-
 drive = GoogleDrive(gauth)
 
 # Upload the files
 for f in parser.parse_args().files:
     short_name = f[f.rfind('/')+1:]
     upload_to_google_drive(f, short_name)
-    #new_file = drive.CreateFile({'title': short_name})
-    #new_file.SetContentFile(f)
-    #new_file.Upload()

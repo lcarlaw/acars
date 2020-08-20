@@ -110,7 +110,7 @@ def vapor_pressure(pressure, mixing):
     pressure of water vapor."""
     return pressure * mixing / (mpconsts.epsilon + mixing)
 
-def equivalent_potential_temperature(pressure, temperature, dewpoint):
+def theta_e(pressure, temperature, dewpoint):
     """Calculate equivalent potential temperature.
 
     This calculation must be given an air parcel's pressure, temperature, and dewpoint.
@@ -193,7 +193,7 @@ def wet_bulb_temperature(pressure, temperature, dewpoint):
     for press, temp, dewp, ret in it:
         press = press
         temp = temp
-        dewp = dewp 
+        dewp = dewp
         lcl_pressure, lcl_temperature = lcl(press, temp, dewp)
         moist_adiabat_temperatures = moist_lapse(concatenate([lcl_pressure, press]),
                                                  lcl_temperature)

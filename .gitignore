@@ -3,7 +3,7 @@ __pycache__/
 utils/__pycache__/
 netcdf/
 data/
-code_storage/
+soundings/
 .env
 token.pickle
 downloads.log
