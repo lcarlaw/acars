@@ -211,6 +211,12 @@ def get_times(data_path):
             os.utime(fname, times)
 
     marker_path = "%s/markers" % data_path
+    try:
+        os.mkdir(marker_path)
+    except OSError as exc:
+        if exc.errno != errno.EEXIST:
+            raise
+        pass
 
     # Figure out the files and their update times from the MADIS server
     req = urlreq.Request(base_url)
@@ -307,17 +313,15 @@ def apply_granularity(profiles, granularity):
 
 def main():
     ap = argparse.ArgumentParser()
-    #ap.add_argument('-d', '--data-path', dest="data_path", default=NETCDF)
-    #ap.add_argument('-o', '--output-path', dest="output_path", default=DATA)
     ap.add_argument('-a', '--archive-mode', dest="archive_mode", help="YYYY-MM-DD/HH")
     ap.add_argument('-v', '--vapor', dest='vapor', action='store_true',
                     help="Set for VAPOR soundings only. Otherwise, grab everything")
     args = ap.parse_args()
     meta = load_meta()
     time_gran = 600
+    args.data_path = NETCDF
+    args.output_path = DATA
     dts = get_times(args.data_path)
-    args.data_path = DATA
-    args.output_path = NETCDF
 
     # ----------------------------------------------------------------------------------
     # For archive "lookback" functionality...

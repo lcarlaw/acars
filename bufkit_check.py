@@ -2,6 +2,7 @@
 sure we'll ever be 100% sure BUFKIT won't die, however!
 """
 import matplotlib.pyplot as plt
+import numpy as np
 
 def strictly_increasing(L):
     return all(x<y for x, y in zip(L, L[1:]))
@@ -9,14 +10,15 @@ def strictly_increasing(L):
 def strictly_decreasing(L):
     return all(x>y for x, y in zip(L, L[1:]))
 
-#filename = './soundings/ACARSvapor_ORD.buf'
-filename = './soundings/rap_kmdw.buf'
+filename = './soundings/ACARSvapor_MDW.buf'
+#filename = './soundings/rap_kmdw.buf'
 with open(filename) as f: data = f.readlines()
 
 ret = False
 indices = [index for index, value in enumerate(data) if value == \
            'PRES TMPC TMWC DWPC THTE DRCT SKNT OMEG\n']
 sum = 0
+max_p = -9999
 if len(indices) >= 5:
     for i in range(len(indices)-1):
     #for i in range(10):
@@ -52,6 +54,7 @@ if len(indices) >= 5:
         num_plevs = int(((end - start) / 2) + 1)
         sum = sum + num_plevs
 
+        min_p = np.maximum(max_p, max(pres))
         print("================== %s ==================" % (str(i)))
         print(min(pres), max(pres))
         #print(min(tmpc), max(tmpc), len(tmpc))
@@ -63,6 +66,7 @@ if len(indices) >= 5:
         plt.plot(pres)
     #plt.ylim(0,500)
     plt.show()
+    print(min_p)
     idx = data.index('STN YYMMDD/HHMM PMSL PRES SKTC STC1 SNFL WTNS\n')
     num_plevs = int((idx-2-indices[i+1])/2)
     sum = sum + num_plevs

@@ -64,6 +64,13 @@ def to_bufkit(output_path, data, rap_data=None, label=None):
 
     snd_lines = ["%s\r\n" % (label)]
     snd_lines.extend(FILE_HEADER)
+
+    for t in range(n_times):
+        pres_store.append(data['pressure'].iloc[t][0])
+    sfc_p_std = np.std(pres_store)
+    sfc_p_mean = np.average(pres_store)
+    p_bound_min = sfc_p_mean - (4 * sfc_p_std)
+    p_bound_max = sfc_p_mean + (4 * sfc_p_std)
     # ----------------------------------------------------------------------------------
     # Data for outputting
     # ----------------------------------------------------------------------------------
@@ -103,6 +110,11 @@ def to_bufkit(output_path, data, rap_data=None, label=None):
         lev_knt = 0
         prof = defaultdict(list)
         for row in range(len(t_out)):
+            if levs[0] < p_bound_min:
+                timestamp("WARN")
+                print("Tossing %s and Flight # %s due to bad sfc pres." % (out_time,
+                                                                data.iloc[t]['flight']))
+                break
             if lev_knt >= max_levs: break
             thetae = thermo.theta_e(levs[row], t_out[row], td_out[row])
 
@@ -115,7 +127,7 @@ def to_bufkit(output_path, data, rap_data=None, label=None):
             prof['wspd'].append(wspd_out[row])
             prof['hght'].append(hght_out[row])
         p_sfc = levs[0]
-        pres_store.append(p_sfc)
+        #pres_store.append(p_sfc)
 
         # Use the RAP data to extend our profile up to a maximum of 67 pressure levels.
         # If not available, extend using some random data (see utils.bufkit_helper).
@@ -143,7 +155,6 @@ def to_bufkit(output_path, data, rap_data=None, label=None):
         # on the ECMWF L62 grid.
         p_levs = []
         for k in range(len(b_k)):
-            #p = ptop + b_k.iloc[k] * (p_sfc - ptop)
             p = a_k.iloc[k] + b_k.iloc[k] * p_sfc
             p_levs.append(p)
         p_levs = p_levs[::-1]
@@ -223,16 +234,10 @@ def read_bufkit(filename, date):
         line_2 = lines[i+1].strip().split(' ')
         line_3 = lines[i+2]
         bufkit_data['pressure'].append(float(line_1[0]))
-        #bufkit_data['temperature'].append(np.clip(float(line_1[1]), -150, 70))
         bufkit_data['temperature'].append(float(line_1[1]))
 
         # Archived data has -9999s at varying levels generally above 150 mb. Not a
-        # big deal since we won't have too much data above this level, but this isn't
-        # ideal and seems to cause occasional BUFKIT crashing...
-        #bufkit_data['dewpoint'].append(np.clip(float(line_1[3]), -100, 40))
-        #if float(line_1[2]) < -9000.: line_1[2] = line_1[1]
-        #if float(line_1[3]) < -9000.: line_1[3] = line_1[1]
-        #if float(line_1[4]) < -9000.: line_1[4] = line_1[1]
+        # big deal since we won't have too much data above this level...
         bufkit_data['tmwc'].append(float(line_1[2]))
         bufkit_data['dewpoint'].append(float(line_1[3]))
         bufkit_data['thte'].append(float(line_1[4]))
@@ -270,14 +275,12 @@ def interp_pres(p, pres, field):
 
 def main():
     ap = argparse.ArgumentParser()
-    #ap.add_argument('-d', '--data-path', dest="data_path", default=DATA)
-    #ap.add_argument('-b', '--bufkit-path', dest="bufkit_path", default=SOUNDINGS)
     ap.add_argument('-a', '--archive', dest='archive', action='store_true',
                     help="Set for archive functionality.")
     args = ap.parse_args()
     args.data_path = DATA
     args.bufkit_path = SOUNDINGS
-    
+
     if not args.archive:
         data_path = "%s/data_store/" % (args.data_path)
     else:
@@ -375,6 +378,15 @@ def main():
                 dwpc_deltas = np.fabs(dwpc - row['dewpoint'])
                 df.at[index, 'dewpoint'] = np.where(dwpc_deltas > TD_QC, dwpc,
                                                     row['dewpoint'])
+                #idx_1 = np.where(tmpc_deltas > T_QC)
+                #idx_2 = np.where(dwpc_deltas > TD_QC)
+                #qc_t = len(idx_1[0]) / len(row['pressure'])*100
+                #qc_td = len(idx_2[0]) / len(row['pressure'])*100
+
+                #if qc_t > 0. or qc_td > 0.:
+                #    print(row['dt'])
+                #    print("---->Replacing %s pct of temperature values" % (qc_t))
+                #    print("---->Replacing %s pct of dewpoint values" % (qc_td))
                 # Currently no QC checks for winds. May add this in later.
             # --------------------------------------------------------------------------
             # Output to file.

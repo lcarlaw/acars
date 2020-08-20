@@ -9,7 +9,8 @@ curr_path = os.path.dirname(__file__) or "."
 # --------------------------------------------------------------------------------------
 # Variables in this first block **must** be edited to run on your local system
 # --------------------------------------------------------------------------------------
-# Various PATH configurations.
+# Various PATH configurations. Note that DATA, SOUNDINGS, and NETCDF directories must
+# be created.
 # DATA : Storage location for python-pickled dictionary files. These contain processed
 #        AMDAR data from the MADIS netCDF files.
 # NETCDF : Storage location for MADIS netCDF files.
@@ -25,8 +26,7 @@ WGET = "/usr/local/bin/wget"
 # Additional editable configurations
 # --------------------------------------------------------------------------------------
 site_ids = [
-    'MDW', 'ORD', 'DAL',
-    'MKE',
+    'MDW',
 ]
 
 # Number of hours to keep pickled python dictionary files in the top-level /data_store
