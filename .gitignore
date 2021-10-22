@@ -1,11 +1,15 @@
 _DS_Store
 __pycache__/
 utils/__pycache__/
+interpolate/__pycache__/
 netcdf/
-data/
-soundings/
+bufkit/
+deprecated/
 .env
 token.pickle
 downloads.log
 crons.log
 .DS_Store
+plots/
+output/*.buf
+output/*.modified

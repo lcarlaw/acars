@@ -17,10 +17,10 @@ curr_path = os.path.dirname(__file__) or "."
 # SOUNDINGS : Output location for sounding .buf files.
 # WGET : Path to the wget binary on this system.
 
-DATA = "/Users/leecarlaw/scripts/acars/data"
-SOUNDINGS = "/Users/leecarlaw/scripts/acars/soundings"
+#DATA = "/Users/leecarlaw/scripts/acars/data"
+#SOUNDINGS = "/Users/leecarlaw/scripts/acars/soundings"
 NETCDF = "/Users/leecarlaw/scripts/acars/netcdf"
-WGET = "/usr/local/bin/wget"
+WGET = "/Users/leecarlaw/anaconda3/envs/acars/bin/wget"
 
 # --------------------------------------------------------------------------------------
 # Additional editable configurations
@@ -33,21 +33,28 @@ site_ids = [
 # directory before sweeping into the archive.
 purge_hours = 24
 
-# Various QC Thresholds
-T_QC = 7.5
-TD_QC = 25.
+# Distance in miles from target airport beyond which to ignore observations
+RADIUS = 75
+
+# Variables to retain in output
+PROF_VARS = ['temperature', 'dewpoint', 'windSpeed', 'windDir', 'altitude', 'datetime',
+             'distance', 'latitude', 'longitude'
+             ]
+
+# Variables to load from raw netCDF files
+LOAD_VARS = ['temperature', 'dewpoint', 'soundingSecs', 'sounding_airport_id',
+             'latitude', 'longitude', 'windSpeed', 'windDir', 'altitude',
+             'dataType', 'flight', 'orig_airport_id', 'dest_airport_id'
+             ]
 
 # --------------------------------------------------------------------------------------
 # Variables in this block should not be changed, unless you have a specific reason to
 # do so!
 # --------------------------------------------------------------------------------------
-base_url = "https://madis-data.ncep.noaa.gov/madisNoaa/data/point/acars/netcdf"
+#base_url = "https://madis-data.ncep.noaa.gov/madisNoaa/data/point/acars/netcdf"
+base_url = "https://madis-data.ncep.noaa.gov/madisNoaa/data/point/"
 archive_url = "https://madis-data.ncep.noaa.gov/madisNoaa/data/archive"
 bufkit_url = "https://mtarchive.geol.iastate.edu"
 epoch = datetime(1970, 1, 1, 0)
-min_pressure_levels = 21
-max_pressure_levels = 55
-
-df = pd.read_csv(curr_path + '/L62.txt', delim_whitespace=True)
-a_k = df['a'] / 100.
-b_k = df['b']
+#min_pressure_levels = 21
+#max_pressure_levels = 55

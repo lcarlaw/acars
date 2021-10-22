@@ -9,3 +9,5 @@ G = 9.80665             # Gravity
 TOL = 1e-10             # Floating Point Tolerance
 MS2KTS = 1.94384        # m/s to knots
 R_d = 287.06            # Dry air gas constant
+MTOMILE = 0.000621371   # Meters to Miles
+MILETOM = 1609.34       # Miles to Meters
